@@ -11,8 +11,11 @@ import NotFound from "./pages/NotFound"
 import AvatarPage from './pages/AvatarPage'
 import KnowledgePage from './pages/KnowledgePage'
 import AssessmentPage from './pages/AssessmentPage'
+import AudioLibrary from './pages/AudioLibrary'
+import AudioPlayer from './components/AudioPlayer'
+import { AudioProvider } from './context/AudioContext'
 import BottomNav from './components/BottomNav'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function App() {
   const location = useLocation()
@@ -30,24 +33,28 @@ export default function App() {
   }, [isLanding])
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className={`mx-auto ${!isLanding ? 'max-w-md min-h-screen relative bg-black shadow-2xl' : ''}`}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/schedule" element={<Schedule />} />
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/feature/:id" element={<FeatureDetail />} />
-          <Route path="/avatar" element={<AvatarPage />} />
-          <Route path="/knowledge/:category" element={<KnowledgePage />} />
-          <Route path="/assessment/:type" element={<AssessmentPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        {!isLanding && <BottomNav />}
+    <AudioProvider>
+      <div className="min-h-screen bg-black">
+        <div className={`mx-auto ${!isLanding ? 'max-w-md min-h-screen relative bg-black shadow-2xl' : ''}`}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/feature/:id" element={<FeatureDetail />} />
+            <Route path="/avatar" element={<AvatarPage />} />
+            <Route path="/knowledge/:category" element={<KnowledgePage />} />
+            <Route path="/assessment/:type" element={<AssessmentPage />} />
+            <Route path="/audio" element={<AudioLibrary />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          {!isLanding && <BottomNav />}
+          <AudioPlayer />
+        </div>
       </div>
-    </div>
+    </AudioProvider>
   )
 }

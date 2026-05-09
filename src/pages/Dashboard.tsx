@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import {
   Moon, Brain, Dumbbell, Apple, Shirt, Heart,
   Users, Wallet, Briefcase, MessageCircle, Sparkles,
-  ChevronRight, Zap, TrendingUp
+  ChevronRight, Zap, TrendingUp, Volume2
 } from 'lucide-react'
 
 const features = [
@@ -21,6 +21,7 @@ const features = [
   { id: 'chat', name: '闲聊陪伴', icon: MessageCircle, color: 'from-fuchsia-500/20 to-pink-500/20', borderColor: 'border-fuchsia-500/30', image: '/feature-fitness.jpg' },
   { id: 'habit', name: '自律打卡', icon: TrendingUp, color: 'from-teal-500/20 to-emerald-500/20', borderColor: 'border-teal-500/30', image: '/feature-diet.jpg' },
   { id: 'health', name: '健康管理', icon: Heart, color: 'from-red-500/20 to-rose-500/20', borderColor: 'border-red-500/30', image: '/feature-mental.jpg' },
+  { id: 'audio', name: '音频内容', icon: Volume2, color: 'from-indigo-500/20 to-purple-500/20', borderColor: 'border-indigo-500/30', image: '/feature-sleep.jpg' },
 ]
 
 export default function Dashboard() {
@@ -112,7 +113,7 @@ export default function Dashboard() {
             return (
               <Link
                 key={feature.id}
-                to={feature.id === 'chat' ? '/chat' : `/feature/${feature.id}`}
+                to={feature.id === 'chat' ? '/chat' : feature.id === 'audio' ? '/audio' : `/feature/${feature.id}`}
                 className={`group relative overflow-hidden rounded-2xl p-3 bg-gradient-to-br ${feature.color} border ${feature.borderColor} transition-all duration-300 hover:scale-105`}
                 style={{ animationDelay: `${i * 0.05}s` }}
               >
