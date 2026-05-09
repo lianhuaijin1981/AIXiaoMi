@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ArrowLeft, Play, Pause, Heart, Clock } from 'lucide-react'
 import { audioCategories, allAudioTracks, getTracksByCategory, getTrackById } from '../data/audioContent'
-import { AudioCategory, AudioTrack } from '../types/audio'
+import type { AudioCategory, AudioTrack } from '../types/audio'
 import { useAudioPlayer } from '../context/AudioContext'
 
 export default function AudioLibrary() {

@@ -12,6 +12,7 @@ import AvatarPage from './pages/AvatarPage'
 import KnowledgePage from './pages/KnowledgePage'
 import AssessmentPage from './pages/AssessmentPage'
 import AudioLibrary from './pages/AudioLibrary'
+import ThreeDAvatar from './pages/ThreeDAvatar'
 import AudioPlayer from './components/AudioPlayer'
 import VoiceWakeIndicator from './components/VoiceWakeIndicator'
 import { AudioProvider } from './context/AudioContext'
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/knowledge/:category" element={<KnowledgePage />} />
             <Route path="/assessment/:type" element={<AssessmentPage />} />
             <Route path="/audio" element={<AudioLibrary />} />
+            <Route path="/3d-avatar" element={<ThreeDAvatar />} />
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

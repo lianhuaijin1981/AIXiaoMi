@@ -1,32 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { WakeWordState, VoiceInteractionOptions, VoiceInteractionResult } from '../types/voice'
+import type { VoiceState, VoiceInteractionOptions, VoiceInteractionResult, WakeWordState } from '../types/voice'
 import { useWakeWord } from './useWakeWord'
-
-export type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking' | 'error'
-
-export interface VoiceInteractionOptions {
-  language?: string
-  continuous?: boolean
-  interimResults?: boolean
-  autoSpeak?: boolean // 是否自动语音播报AI回复
-}
-
-export interface VoiceInteractionResult {
-  voiceState: VoiceState
-  transcript: string
-  isListening: boolean
-  isSpeaking: boolean
-  voiceEnabled: boolean
-  currentPersona: string
-
-  startListening: () => void
-  stopListening: () => void
-  toggleListening: () => void
-  speak: (text: string, persona?: string) => void
-  stopSpeaking: () => void
-  toggleVoice: () => void
-  setPersona: (persona: string) => void
-}
 
 // 人设对应的语音参数
 const personaVoiceConfig: Record<string, { rate: number; pitch: number; voiceName?: string }> = {

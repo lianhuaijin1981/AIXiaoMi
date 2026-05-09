@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { WakeWordState, WakeWordConfig, WakeWordResult } from '../types/voice'
+import type { WakeWordState, WakeWordConfig, WakeWordResult } from '../types/voice'
 
 // 默认配置
 const DEFAULT_CONFIG: WakeWordConfig = {

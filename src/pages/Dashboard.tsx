@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import {
   Moon, Brain, Dumbbell, Apple, Shirt, Heart,
   Users, Wallet, Briefcase, MessageCircle, Sparkles,
-  ChevronRight, Zap, TrendingUp, Volume2
+  ChevronRight, Zap, TrendingUp, Volume2, Box
 } from 'lucide-react'
 
 const features = [
@@ -22,6 +22,7 @@ const features = [
   { id: 'habit', name: '自律打卡', icon: TrendingUp, color: 'from-teal-500/20 to-emerald-500/20', borderColor: 'border-teal-500/30', image: '/feature-diet.jpg' },
   { id: 'health', name: '健康管理', icon: Heart, color: 'from-red-500/20 to-rose-500/20', borderColor: 'border-red-500/30', image: '/feature-mental.jpg' },
   { id: 'audio', name: '音频内容', icon: Volume2, color: 'from-indigo-500/20 to-purple-500/20', borderColor: 'border-indigo-500/30', image: '/feature-sleep.jpg' },
+  { id: '3d-avatar', name: '3D分身', icon: Box, color: 'from-cyan-500/20 to-blue-500/20', borderColor: 'border-cyan-500/30', image: '/feature-sleep.jpg' },
 ]
 
 export default function Dashboard() {
@@ -113,7 +114,7 @@ export default function Dashboard() {
             return (
               <Link
                 key={feature.id}
-                to={feature.id === 'chat' ? '/chat' : feature.id === 'audio' ? '/audio' : `/feature/${feature.id}`}
+                to={feature.id === 'chat' ? '/chat' : feature.id === 'audio' ? '/audio' : feature.id === '3d-avatar' ? '/3d-avatar' : `/feature/${feature.id}`}
                 className={`group relative overflow-hidden rounded-2xl p-3 bg-gradient-to-br ${feature.color} border ${feature.borderColor} transition-all duration-300 hover:scale-105`}
                 style={{ animationDelay: `${i * 0.05}s` }}
               >
