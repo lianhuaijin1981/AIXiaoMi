@@ -1,7 +1,8 @@
 {
-  "name": "my-app",
-  "private": true,
-  "version": "0.0.0",
+  "name": "ai-xiaomi",
+  "private": false,
+  "version": "1.0.0",
+  "description": "AI小蜜 - 你的专属AI数字分身管家，提供睡眠助眠、情绪疏导、护肤管理、健身塑形、饮食养生、穿搭形象等12大维度的智能服务",
   "type": "module",
   "scripts": {
     "dev": "vite",
