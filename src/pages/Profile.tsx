@@ -7,6 +7,7 @@ import {
   ChevronRight, User, Volume2, Smartphone, LogOut,
   Sparkles, Crown, Zap
 } from 'lucide-react'
+import PushNotificationSettings from '@/components/PushNotificationSettings'
 
 const menuGroups = [
   {
@@ -147,6 +148,11 @@ export default function Profile() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* 推送通知设置 */}
+      <div className={`px-4 mt-4 transition-all duration-700 delay-350 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <PushNotificationSettings />
       </div>
 
       {/* Logout */}

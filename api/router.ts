@@ -5,6 +5,7 @@ import { scheduleRouter } from "./schedule-router";
 import { userRouter } from "./user-router";
 import { knowledgeRouter } from "./knowledge-router";
 import { avatarRouter } from "./avatar-router";
+import { pushRouter } from "./push-router";
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -16,6 +17,7 @@ export const appRouter = createRouter({
   user: userRouter,
   knowledge: knowledgeRouter,
   avatar: avatarRouter,
+  push: pushRouter,
 });
 
 export type AppRouter = typeof appRouter;
