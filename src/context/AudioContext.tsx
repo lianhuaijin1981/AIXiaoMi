@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useRef, useCallback, useEffect, ReactNode } from 'react'
-import { AudioTrack, PlaybackState } from '@/types/audio'
+import { AudioTrack, PlaybackState } from '../types/audio'
 
 interface AudioContextType {
   playbackState: PlaybackState

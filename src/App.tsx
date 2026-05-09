@@ -13,6 +13,7 @@ import KnowledgePage from './pages/KnowledgePage'
 import AssessmentPage from './pages/AssessmentPage'
 import AudioLibrary from './pages/AudioLibrary'
 import AudioPlayer from './components/AudioPlayer'
+import VoiceWakeIndicator from './components/VoiceWakeIndicator'
 import { AudioProvider } from './context/AudioContext'
 import BottomNav from './components/BottomNav'
 import { useEffect, useState } from 'react'
@@ -53,6 +54,13 @@ export default function App() {
           </Routes>
           {!isLanding && <BottomNav />}
           <AudioPlayer />
+          {/* 语音唤醒指示器 - 全局可用 */}
+          <VoiceWakeIndicator
+            onWake={() => {
+              console.log('语音唤醒已激活！')
+              // 可以在这里添加唤醒后的逻辑，比如跳转到聊天页面
+            }}
+          />
         </div>
       </div>
     </AudioProvider>

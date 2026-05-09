@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { WakeWordState, VoiceInteractionOptions, VoiceInteractionResult } from '../types/voice'
+import { useWakeWord } from './useWakeWord'
 
 export type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking' | 'error'
 
@@ -40,16 +42,48 @@ export function useVoiceInteraction(options: VoiceInteractionOptions = {}): Voic
     continuous = false,
     interimResults = false,
     autoSpeak = false,
+    wakeMode = false,
+    wakeWord = '哎小蜜',
+    onWake,
   } = options
 
   const [voiceState, setVoiceState] = useState<VoiceState>('idle')
   const [transcript, setTranscript] = useState('')
   const [voiceEnabled, setVoiceEnabled] = useState(true)
   const [currentPersona, setCurrentPersona] = useState('lingzhi')
+  const [isWakeMode, setIsWakeMode] = useState(wakeMode)
 
   const recognitionRef = useRef<any>(null)
   const synthesisRef = useRef<SpeechSynthesis | null>(null)
   const isListeningRef = useRef(false)
+
+  // 唤醒词检测
+  const {
+    state: wakeWordState,
+    isListening: isWakeWordListening,
+    isActivated: isWakeWordActivated,
+    startListening: startWakeWordDetection,
+    stopListening: stopWakeWordDetection,
+    toggleListening: toggleWakeMode,
+  } = useWakeWord(
+    {
+      wakeWord,
+      sensitivity: 'medium',
+      autoReactivate: true,
+      timeout: 10000,
+      enableSound: true,
+    },
+    () => {
+      // 唤醒成功回调
+      if (onWake) {
+        onWake()
+      }
+      // 自动开始语音识别
+      if (isWakeMode) {
+        setTimeout(() => startListening(), 500)
+      }
+    },
+  )
 
   // 初始化语音识别
   useEffect(() => {
@@ -212,6 +246,8 @@ export function useVoiceInteraction(options: VoiceInteractionOptions = {}): Voic
     isSpeaking: voiceState === 'speaking',
     voiceEnabled,
     currentPersona,
+    wakeWordState,
+    isWakeMode,
 
     startListening,
     stopListening,
@@ -220,6 +256,17 @@ export function useVoiceInteraction(options: VoiceInteractionOptions = {}): Voic
     stopSpeaking,
     toggleVoice,
     setPersona: setCurrentPersona,
+
+    // 唤醒词相关
+    startWakeWordDetection,
+    stopWakeWordDetection,
+    toggleWakeMode: () => {
+      const newWakeMode = !isWakeMode
+      setIsWakeMode(newWakeMode)
+      if (!newWakeMode) {
+        stopWakeWordDetection()
+      }
+    },
   }
 }
 
@@ -229,6 +276,17 @@ export function getVoiceStateLabel(state: VoiceState): string {
     listening: '正在聆听...',
     processing: '处理中...',
     speaking: 'AI正在说话...',
+    error: '语音功能异常',
+  }
+  return labels[state]
+}
+
+export function getWakeWordStateLabel(state: WakeWordState): string {
+  const labels: Record<WakeWordState, string> = {
+    idle: '点击激活语音唤醒',
+    listening: '正在聆听唤醒词...',
+    detected: '唤醒词已检测到！',
+    activated: '已唤醒，我在听',
     error: '语音功能异常',
   }
   return labels[state]

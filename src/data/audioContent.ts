@@ -1,4 +1,4 @@
-import { AudioTrack, AudioCategoryInfo } from '@/types/audio'
+import { AudioTrack, AudioCategoryInfo } from '../types/audio'
 
 // 音频分类信息
 export const audioCategories: AudioCategoryInfo[] = [
