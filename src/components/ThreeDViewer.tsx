@@ -21,6 +21,16 @@ interface ThreeDViewerProps {
 }
 
 /**
+ * 材质属性接口
+ */
+interface MaterialProps {
+  color: string
+  metalness: number
+  roughness: number
+  wireframe: boolean
+}
+
+/**
  * Three.js 3D 模型查看器组件
  * 支持 OBJ, FBX, GLTF, GLB, STL, PLY 格式
  */
@@ -38,10 +48,27 @@ export default function ThreeDViewer({
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const controlsRef = useRef<OrbitControls | null>(null)
   const frameRef = useRef<number>(0)
+  const modelRef = useRef<THREE.Group | THREE.Mesh | null>(null)
   
   const [isLoading, setIsLoading] = useState(true)
   const [loadProgress, setLoadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  
+  // UI 控制面板状态
+  const [autoRotate, setAutoRotate] = useState(false)
+  const [showControls, setShowControls] = useState(true)
+  const [showMaterialPanel, setShowMaterialPanel] = useState(false)
+  
+  // 材质属性状态
+  const [materialProps, setMaterialProps] = useState<MaterialProps>({
+    color: '#00ff00',
+    metalness: 0.5,
+    roughness: 0.5,
+    wireframe: false
+  })
+  
+  // 旋转状态
+  const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 })
   
   /**
    * 初始化 Three.js 场景
@@ -100,10 +127,16 @@ export default function ThreeDViewer({
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate)
       controls.update()
+      
+      // 自动旋转
+      if (autoRotate && modelRef.current) {
+        modelRef.current.rotation.y += 0.01
+      }
+      
       renderer.render(scene, camera)
     }
     animate()
-  }, [width, height])
+  }, [width, height, autoRotate])
   
   /**
    * 加载 3D 模型
@@ -141,6 +174,7 @@ export default function ThreeDViewer({
             )
           })
           scene.add(object)
+          modelRef.current = object
           break
         }
         
@@ -159,6 +193,7 @@ export default function ThreeDViewer({
             )
           })
           scene.add(object)
+          modelRef.current = object
           break
         }
         
@@ -178,6 +213,7 @@ export default function ThreeDViewer({
             )
           })
           scene.add(gltf.scene)
+          modelRef.current = gltf.scene
           break
         }
         
@@ -198,6 +234,7 @@ export default function ThreeDViewer({
           const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 })
           const mesh = new THREE.Mesh(geometry, material)
           scene.add(mesh)
+          modelRef.current = mesh
           break
         }
         
@@ -218,6 +255,7 @@ export default function ThreeDViewer({
           const material = new THREE.MeshStandardMaterial({ color: 0xffffff })
           const mesh = new THREE.Mesh(geometry, material)
           scene.add(mesh)
+          modelRef.current = mesh
           break
         }
         
@@ -253,6 +291,133 @@ export default function ThreeDViewer({
       if (onError) onError(errorMsg)
     }
   }, [modelUrl, format, onLoad, onError])
+  
+  /**
+   * 旋转模型
+   */
+  const rotateModel = useCallback((axis: 'x' | 'y' | 'z', angle: number) => {
+    if (!modelRef.current) return
+    
+    const radians = angle * (Math.PI / 180)
+    if (axis === 'x') modelRef.current.rotation.x += radians
+    if (axis === 'y') modelRef.current.rotation.y += radians
+    if (axis === 'z') modelRef.current.rotation.z += radians
+    
+    setRotation({
+      x: modelRef.current.rotation.x * (180 / Math.PI),
+      y: modelRef.current.rotation.y * (180 / Math.PI),
+      z: modelRef.current.rotation.z * (180 / Math.PI)
+    })
+  }, [])
+  
+  /**
+   * 缩放模型
+   */
+  const scaleModel = useCallback((factor: number) => {
+    if (!modelRef.current) return
+    modelRef.current.scale.multiplyScalar(factor)
+  }, [])
+  
+  /**
+   * 平移模型
+   */
+  const translateModel = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
+    if (!modelRef.current) return
+    
+    const step = 0.5
+    switch (direction) {
+      case 'up': modelRef.current.position.y += step; break
+      case 'down': modelRef.current.position.y -= step; break
+      case 'left': modelRef.current.position.x -= step; break
+      case 'right': modelRef.current.position.x += step; break
+    }
+  }, [])
+  
+  /**
+   * 重置模型和相机
+   */
+  const resetView = useCallback(() => {
+    if (!modelRef.current || !cameraRef.current || !controlsRef.current || !sceneRef.current) return
+    
+    // 重置模型位置和旋转
+    modelRef.current.position.set(0, 0, 0)
+    modelRef.current.rotation.set(0, 0, 0)
+    modelRef.current.scale.set(1, 1, 1)
+    
+    // 调整相机位置
+    const box = new THREE.Box3().setFromObject(sceneRef.current)
+    const center = box.getCenter(new THREE.Vector3())
+    const size = box.getSize(new THREE.Vector3())
+    
+    const maxDim = Math.max(size.x, size.y, size.z)
+    const fov = cameraRef.current.fov * (Math.PI / 180)
+    let cameraZ = Math.abs(maxDim / Math.sin(fov / 2))
+    
+    cameraRef.current.position.set(center.x, center.y, cameraZ * 1.5)
+    cameraRef.current.lookAt(center)
+    
+    controlsRef.current.target.copy(center)
+    controlsRef.current.update()
+    
+    setRotation({ x: 0, y: 0, z: 0 })
+  }, [])
+  
+  /**
+   * 更新模型材质
+   */
+  const updateMaterial = useCallback((props: Partial<MaterialProps>) => {
+    if (!modelRef.current) return
+    
+    setMaterialProps(prev => ({ ...prev, ...props }))
+    
+    modelRef.current.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach(mat => {
+            if (mat instanceof THREE.MeshStandardMaterial) {
+              if (props.color !== undefined) mat.color.set(props.color)
+              if (props.metalness !== undefined) mat.metalness = props.metalness
+              if (props.roughness !== undefined) mat.roughness = props.roughness
+              if (props.wireframe !== undefined) mat.wireframe = props.wireframe
+            }
+          })
+        } else if (child.material instanceof THREE.MeshStandardMaterial) {
+          if (props.color !== undefined) child.material.color.set(props.color)
+          if (props.metalness !== undefined) child.material.metalness = props.metalness
+          if (props.roughness !== undefined) child.material.roughness = props.roughness
+          if (props.wireframe !== undefined) child.material.wireframe = props.wireframe
+        }
+      }
+    })
+  }, [])
+  
+  /**
+   * 截图并下载为 PNG
+   */
+  const takeSnapshot = useCallback(() => {
+    if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return
+    
+    // 临时设置白色背景
+    const originalBackground = sceneRef.current.background
+    sceneRef.current.background = new THREE.Color(0xffffff)
+    
+    // 渲染一帧
+    rendererRef.current.render(sceneRef.current, cameraRef.current)
+    
+    // 获取 PNG 数据
+    const dataURL = rendererRef.current.domElement.toDataURL('image/png')
+    
+    // 恢复原始背景
+    sceneRef.current.background = originalBackground
+    
+    // 创建下载链接
+    const link = document.createElement('a')
+    link.href = dataURL
+    link.download = `model-snapshot-${Date.now()}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }, [])
   
   /**
    * 处理窗口大小变化
@@ -333,6 +498,157 @@ export default function ThreeDViewer({
             </svg>
             <p className="font-medium">模型加载失败</p>
             <p className="text-sm mt-2">{error}</p>
+          </div>
+        </div>
+      )}
+      
+      {/* 顶部工具栏 */}
+      {!isLoading && !error && (
+        <div className="absolute top-4 right-4 flex space-x-2">
+          <button
+            onClick={() => setShowControls(!showControls)}
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            title="显示/隐藏控制面板"
+          >
+            🎮 控制
+          </button>
+          <button
+            onClick={() => setShowMaterialPanel(!showMaterialPanel)}
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            title="显示/隐藏材质面板"
+          >
+            🎨 材质
+          </button>
+          <button
+            onClick={takeSnapshot}
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            title="保存快照为 PNG"
+          >
+            📷 快照
+          </button>
+        </div>
+      )}
+      
+      {/* 右侧控制面板 */}
+      {!isLoading && !error && showControls && (
+        <div className="absolute top-16 right-4 bg-white p-4 rounded-lg shadow-lg w-64 max-h-[80vh] overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-4">🎮 模型控制</h3>
+          
+          {/* 自动旋转 */}
+          <div className="mb-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoRotate}
+                onChange={(e) => setAutoRotate(e.target.checked)}
+                className="mr-2"
+              />
+              <span>自动旋转</span>
+            </label>
+          </div>
+          
+          {/* 旋转控制 */}
+          <div className="mb-4">
+            <p className="font-medium mb-2">旋转 (当前: X:{rotation.x.toFixed(1)}° Y:{rotation.y.toFixed(1)}° Z:{rotation.z.toFixed(1)}°)</p>
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <button onClick={() => rotateModel('x', 15)} className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm">X+15°</button>
+              <button onClick={() => rotateModel('y', 15)} className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm">Y+15°</button>
+              <button onClick={() => rotateModel('z', 15)} className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm">Z+15°</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button onClick={() => rotateModel('x', -15)} className="bg-blue-300 hover:bg-blue-400 text-white px-2 py-1 rounded text-sm">X-15°</button>
+              <button onClick={() => rotateModel('y', -15)} className="bg-blue-300 hover:bg-blue-400 text-white px-2 py-1 rounded text-sm">Y-15°</button>
+              <button onClick={() => rotateModel('z', -15)} className="bg-blue-300 hover:bg-blue-400 text-white px-2 py-1 rounded text-sm">Z-15°</button>
+            </div>
+          </div>
+          
+          {/* 缩放控制 */}
+          <div className="mb-4">
+            <p className="font-medium mb-2">缩放</p>
+            <div className="grid grid-cols-3 gap-2">
+              <button onClick={() => scaleModel(1.2)} className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-sm">放大</button>
+              <button onClick={() => scaleModel(0.8)} className="bg-green-300 hover:bg-green-400 text-white px-2 py-1 rounded text-sm">缩小</button>
+              <button onClick={() => scaleModel(1)} className="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-sm">重置</button>
+            </div>
+          </div>
+          
+          {/* 平移控制 */}
+          <div className="mb-4">
+            <p className="font-medium mb-2">平移</p>
+            <div className="grid grid-cols-3 gap-2">
+              <div></div>
+              <button onClick={() => translateModel('up')} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-sm">上</button>
+              <div></div>
+              <button onClick={() => translateModel('left')} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-sm">左</button>
+              <button onClick={() => translateModel('down')} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-sm">下</button>
+              <button onClick={() => translateModel('right')} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-sm">右</button>
+            </div>
+          </div>
+          
+          {/* 重置视图 */}
+          <div className="mb-4">
+            <button onClick={resetView} className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+              重置视图
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* 材质编辑面板 */}
+      {!isLoading && !error && showMaterialPanel && (
+        <div className="absolute top-16 right-72 bg-white p-4 rounded-lg shadow-lg w-64 max-h-[80vh] overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-4">🎨 材质编辑</h3>
+          
+          {/* 颜色选择 */}
+          <div className="mb-4">
+            <label className="block font-medium mb-2">颜色</label>
+            <input
+              type="color"
+              value={materialProps.color}
+              onChange={(e) => updateMaterial({ color: e.target.value })}
+              className="w-full h-10 cursor-pointer"
+            />
+          </div>
+          
+          {/* 金属度 */}
+          <div className="mb-4">
+            <label className="block font-medium mb-2">金属度: {materialProps.metalness.toFixed(2)}</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={materialProps.metalness}
+              onChange={(e) => updateMaterial({ metalness: parseFloat(e.target.value) })}
+              className="w-full"
+            />
+          </div>
+          
+          {/* 粗糙度 */}
+          <div className="mb-4">
+            <label className="block font-medium mb-2">粗糙度: {materialProps.roughness.toFixed(2)}</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={materialProps.roughness}
+              onChange={(e) => updateMaterial({ roughness: parseFloat(e.target.value) })}
+              className="w-full"
+            />
+          </div>
+          
+          {/* 线框模式 */}
+          <div className="mb-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={materialProps.wireframe}
+                onChange={(e) => updateMaterial({ wireframe: e.target.checked })}
+                className="mr-2"
+              />
+              <span>线框模式</span>
+            </label>
           </div>
         </div>
       )}
