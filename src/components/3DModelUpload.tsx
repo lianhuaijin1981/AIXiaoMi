@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react'
 import type { Model3D, ModelFormat, ScanStatus } from '../types/3d-scan'
 import { SCAN_STATUS_LABELS } from '../types/3d-scan'
+import ThreeDViewer from './ThreeDViewer'
 
 /**
  * 3D 模型上传组件
@@ -233,35 +234,22 @@ export default function ThreeDModelUpload() {
           </div>
         </div>
         
-        {/* 3D 预览 */}
-        {previewUrl && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">3D 预览</h3>
-            <div className="bg-gray-100 rounded-lg h-96 flex items-center justify-center">
-              <div className="text-center">
-                <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1m0 0l-2 1m2-1v2.5M12 21l-2-1m2 1l-2 1m2-1v2.5M6 7l-2 1m2-1L4 7m2 1v2.5" />
-                </svg>
-                <p className="text-gray-600">3D 预览需要 WebGL 支持</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  文件名：{uploadedModel.fileName}
-                </p>
-                <p className="text-sm text-gray-500">
-                  提示：实际项目中需要集成 Three.js 或 Babylon.js 来渲染 3D 模型
-                </p>
-              </div>
-            </div>
+        {/* 3D 预览 - 使用真实的 ThreeDViewer 组件 */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">3D 预览</h3>
+          <div className="rounded-lg overflow-hidden" style={{ height: '500px' }}>
+            <ThreeDViewer
+              modelUrl={uploadedModel.fileUrl}
+              format={uploadedModel.format}
+              onLoad={() => {
+                console.log('模型加载成功')
+              }}
+              onError={(errorMsg) => {
+                console.error('模型加载失败:', errorMsg)
+              }}
+            />
           </div>
-        )}
-        
-        {!previewUrl && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-800">
-              ⚠️ {uploadedModel.format.toUpperCase()} 格式暂不支持在线预览。
-              支持预览的格式：OBJ, GLTF, GLB
-            </p>
-          </div>
-        )}
+        </div>
       </div>
     )
   }

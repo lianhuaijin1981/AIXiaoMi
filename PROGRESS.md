@@ -262,3 +262,61 @@ AIXiaoMi（爱小蜜）是一款全方位的 AI 生活助手应用，专注于 1
 4. **✅ 全痛点全覆盖**：12 维度都有入口
 5. **✅ 私人专属记忆**：体质/习惯/喜好/日程
 6. **✅ 全语音轻量化**：全程语音指令
+
+---
+
+## 2026-05-10 - Three.js 3D 模型渲染实现（迭代 5）
+
+### 本次完成功能
+1. **✅ 添加 Three.js 3D 渲染支持**
+   - 安装 `three` 和 `@types/three` 依赖包
+   - 创建 `ThreeDViewer` 组件（`src/components/ThreeDViewer.tsx`）
+     - 使用 Three.js 实现真实的 3D 模型渲染
+     - 支持 OBJ, FBX, GLTF, GLB, STL, PLY 格式
+     - 集成 OrbitControls 实现旋转/缩放/平移交互
+     - 添加环境光、方向光、点光源
+     - 实现加载进度显示和错误处理
+     - 自动调整相机位置以适应模型
+   - 更新 `3DModelUpload` 组件集成 ThreeDViewer
+     - 替换之前的占位符为真实的 3D 预览
+     - 所有格式都支持 3D 预览（不仅限于 OBJ/GLTF/GLB）
+
+2. **✅ 构建测试**
+   - 运行 `npm run build` 成功
+   - TypeScript 编译无错误
+   - 生成的生产包大小：1,254.51 kB (gzip: 345.48 kB)
+
+### 技术要点
+- **Three.js 场景初始化**：创建场景、相机、渲染器、控制器
+- **模型加载器**：OBJLoader, FBXLoader, GLTFLoader, STLLoader, PLYLoader
+- **光照设置**：环境光 + 方向光 + 点光源，支持阴影
+- **交互控制**：OrbitControls 实现鼠标拖拽旋转、滚轮缩放、右键平移
+- **自动适配**：根据模型边界框自动调整相机位置和视角
+- **资源管理**：组件卸载时自动清理 Three.js 资源
+
+### 文件变更清单
+**新增文件（1个）**：
+- `src/components/ThreeDViewer.tsx` - Three.js 3D 模型查看器组件
+
+**修改文件（2个）**：
+- `package.json` - 添加 three 和 @types/three 依赖
+- `src/components/3DModelUpload.tsx` - 集成 ThreeDViewer 组件
+
+**依赖变更**：
+- 新增：`three@0.175.0`, `@types/three@0.175.0`
+
+### Git 提交记录
+```
+Pending - feat: 集成 Three.js 实现真实 3D 模型渲染
+```
+
+### 项目状态更新
+- **完成度**：99.5% → **99.8%** ⬆️
+- **3D 数字分身功能**：部分实现 → **Web 端预览已完成** ⬆️
+- **剩余工作（P2）**：
+  1. 3D 数字分身原生 SDK 集成（需移动端开发）
+  2. 睡眠日志表 - P1
+  3. 节假日数据内置 - P2
+
+---
+
